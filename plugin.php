@@ -46,7 +46,7 @@ $staticpress = new static_press(
 add_filter('StaticPress::get_url', array($staticpress, 'replace_url'));
 add_filter('StaticPress::static_url', array($staticpress, 'static_url'));
 add_filter('StaticPress::put_content', array($staticpress, 'rewrite_generator_tag'), 10, 2);
-add_filter('StaticPress::put_content', array($staticpress, 'add_last_modified'), 10, 2);
+//add_filter('StaticPress::put_content', array($staticpress, 'add_last_modified'), 10, 2);
 add_filter('StaticPress::put_content', array($staticpress, 'remove_link_tag'), 10, 2);
 add_filter('StaticPress::put_content', array($staticpress, 'replace_relative_URI'), 10, 2);
 

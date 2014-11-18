@@ -175,7 +175,7 @@ CREATE TABLE `{$this->url_table}` (
 		}
 
 		$result = array();
-		$static_file = $this->create_static_file($url->url, $url->type, true, true);
+		$static_file = $this->create_static_file($url->url, $url->type, true, true, $url->last_modified);
 		$file_count = 1;
 		$result[$url->ID] = array(
 			'ID' => $url->ID,
@@ -193,11 +193,11 @@ CREATE TABLE `{$this->url_table}` (
 				case 'author_archive':
 				case 'other_page':
 					$page_url = sprintf('%s/page/%d', $page_url, $page);
-					$static_file = $this->create_static_file($page_url, 'other_page', false, true);
+					$static_file = $this->create_static_file($page_url, 'other_page', false, true, $url->last_modified);
 					break;
 				case 'single':
 					$page_url = sprintf('%s/%d', $page_url, $page);
-					$static_file = $this->create_static_file($page_url, 'other_page', false, true);
+					$static_file = $this->create_static_file($page_url, 'other_page', false, true, $url->last_modified);
 					break;
 				}
 				if (!$static_file)
@@ -215,7 +215,7 @@ CREATE TABLE `{$this->url_table}` (
 
 		while ($url = $this->fetch_url()) {
 			$limit = ($url->type == 'static_file' ? self::FETCH_LIMIT_STATIC : self::FETCH_LIMIT);
-			$static_file = $this->create_static_file($url->url, $url->type, true, true);
+			$static_file = $this->create_static_file($url->url, $url->type, true, true, $url->last_modified);
 			$file_count++;
 			$result[$url->ID] = array(
 				'ID' => $url->ID,
@@ -319,7 +319,7 @@ CREATE TABLE `{$this->url_table}` (
 		global $wpdb;
 
 		$sql = $wpdb->prepare(
-			"select ID, type, url, pages from {$this->url_table} where `last_upload` < %s and ID > %d and enable = 1 order by ID limit 1",
+			"select ID, type, url, pages, last_modified from {$this->url_table} where `last_upload` < %s and ID > %d and enable = 1 order by ID limit 1",
 			$this->fetch_start_time(),
 			$this->fetch_last_id()
 			);
@@ -360,7 +360,7 @@ CREATE TABLE `{$this->url_table}` (
 		}
 	}
 
-	private function create_static_file($url, $file_type = 'other_page', $create_404 = true, $crawling = false) {
+	private function create_static_file($url, $file_type = 'other_page', $create_404 = true, $crawling = false, $last_modified = null) {
 		$url = apply_filters('StaticPress::get_url', $url);
 		$file_dest = untrailingslashit($this->static_dir) . $this->static_url($url);
 		$dir_sep = defined('DIRECTORY_SEPARATOR') ? DIRECTORY_SEPARATOR : '/';
@@ -381,11 +381,16 @@ CREATE TABLE `{$this->url_table}` (
 				case 200:
 					if ($crawling)
 						$this->other_url($content['body'], $url, $http_code);
+          // FALLTHROUGH
 				case 404:
 					if ($create_404 || $http_code == 200) {
 						$content = apply_filters('StaticPress::put_content', $content['body'], $http_code);
 						$this->make_subdirectories($file_dest);
 						file_put_contents($file_dest, $content);
+            if (!is_null($last_modified)) {
+              touch($file_dest, strtotime($last_modified));
+              trigger_error("StaticPress: ${file_dest} -> ${last_modified}", E_USER_WARNING);
+            }
 						$file_date = date('Y-m-d h:i:s', filemtime($file_dest));
 					}
 				}
