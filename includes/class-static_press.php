@@ -26,13 +26,14 @@ class static_press {
 	private $remote_get_option;
 
 	private $transient_key = 'static static';
-
+	private $static_files_ext = array();
+/*
 	private $static_files_ext = array(
 		'html','htm','txt','css','js','gif','png','jpg','jpeg',
 		'mp3','ico','ttf','woff','otf','eot','svg','svgz','xml',
 		'gz','zip', 'pdf', 'swf',
 		);
-
+*/
 	function __construct($plugin_basename, $static_url = '/', $static_dir = '', $remote_get_option = array()){
 		self::$instance = $this;
 
@@ -416,7 +417,7 @@ CREATE TABLE `{$this->url_table}` (
 			if ($file_source != $file_dest && (!file_exists($file_dest) || filemtime($file_source) > filemtime($file_dest))) {
 				$file_date = date('Y-m-d h:i:s', filemtime($file_source));
 				$this->make_subdirectories($file_dest);
-				copy($file_source, $file_dest);
+				//copy($file_source, $file_dest);
 			}
 			break;
 		}
@@ -659,7 +660,7 @@ CREATE TABLE `{$this->url_table}` (
 		$urls = array_merge($urls, $this->single_url());
 		$urls = array_merge($urls, $this->terms_url());
 		$urls = array_merge($urls, $this->author_url());
-		$urls = array_merge($urls, $this->static_files_url());
+		//$urls = array_merge($urls, $this->static_files_url());
 		return $urls;
 	}
 
