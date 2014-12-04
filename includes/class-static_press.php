@@ -1,4 +1,12 @@
 <?php
+function replace_callback($match) {
+  $type = $match[1];
+  $url = $match[2];
+  if (empty($url))
+    $url = '/';
+  return " $type=\"$url\" ";
+}
+
 class static_press {
 	const FETCH_LIMIT        =   5;
 	const FETCH_LIMIT_STATIC = 100;
@@ -509,14 +517,16 @@ CREATE TABLE `{$this->url_table}` (
 			'# (href|src|action)="'.preg_quote($static_url).'([^"]*)"#ism',
 			"# (href|src|action)='".preg_quote($static_url)."([^']*)'#ism",
 		);
-		$content  = preg_replace($pattern, ' $1="$2"', $content);
+		//$content  = preg_replace($pattern, ' $1="$2"', $content);
+		$content  = preg_replace_callback($pattern, 'replace_callback', $content);
 
 		if ( $home_url !== $static_url ) {
 			$pattern  = array(
 				'# (href|src|action)="'.preg_quote($home_url).'([^"]*)"#ism',
 				"# (href|src|action)='".preg_quote($home_url)."([^']*)'#ism",
 			);
-			$content  = preg_replace($pattern, ' $1="$2"', $content);
+      //$content  = preg_replace($pattern, ' $1="$2"', $content);
+      $content  = preg_replace_callback($pattern, 'replace_callback', $content);
 		}
 
 		$pattern = array(
